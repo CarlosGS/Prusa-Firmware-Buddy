@@ -45,7 +45,7 @@ screen_splash_data_t::screen_splash_data_t()
     const bool run_selftest = eeprom_get_bool(EEVAR_RUN_SELFTEST);
     const bool run_xyzcalib = eeprom_get_bool(EEVAR_RUN_XYZCALIB);
     const bool run_firstlay = eeprom_get_bool(EEVAR_RUN_FIRSTLAY);
-    const bool run_wizard = (run_selftest && run_xyzcalib && run_firstlay);
+    const bool run_wizard = 0; // disable wizard for Hephestos 2 (run_selftest && run_xyzcalib && run_firstlay);
     const bool run_lang = !LangEEPROM::getInstance().IsValid();
 
     const screen_node screens[] {

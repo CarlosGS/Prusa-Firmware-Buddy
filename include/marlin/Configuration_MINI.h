@@ -346,13 +346,15 @@
  *
  * :{ '0': "Not used", '1':"100k / 4.7k - EPCOS", '2':"200k / 4.7k - ATC Semitec 204GT-2", '3':"Mendel-parts / 4.7k", '4':"10k !! do not use for a hotend. Bad resolution at high temp. !!", '5':"100K / 4.7k - ATC Semitec 104GT-2 (Used in ParCan & J-Head)", '501':"100K Zonestar (Tronxy X3A)", '6':"100k / 4.7k EPCOS - Not as accurate as Table 1", '7':"100k / 4.7k Honeywell 135-104LAG-J01", '8':"100k / 4.7k 0603 SMD Vishay NTCS0603E3104FXT", '9':"100k / 4.7k GE Sensing AL03006-58.2K-97-G1", '10':"100k / 4.7k RS 198-961", '11':"100k / 4.7k beta 3950 1%", '12':"100k / 4.7k 0603 SMD Vishay NTCS0603E3104FXT (calibrated for Makibox hot bed)", '13':"100k Hisens 3950  1% up to 300°C for hotend 'Simple ONE ' & hotend 'All In ONE'", '20':"PT100 (Ultimainboard V2.x)", '51':"100k / 1k - EPCOS", '52':"200k / 1k - ATC Semitec 204GT-2", '55':"100k / 1k - ATC Semitec 104GT-2 (Used in ParCan & J-Head)", '60':"100k Maker's Tool Works Kapton Bed Thermistor beta=3950", '61':"100k Formbot / Vivedino 3950 350C thermistor 4.7k pullup", '66':"Dyze Design 4.7M High Temperature thermistor", '67':"Slice Engineering 450C High Temperature thermistor", '70':"the 100K thermistor found in the bq Hephestos 2", '71':"100k / 4.7k Honeywell 135-104LAF-J01", '147':"Pt100 / 4.7k", '1047':"Pt1000 / 4.7k", '110':"Pt100 / 1k (non-standard)", '1010':"Pt1000 / 1k (non standard)", '-4':"Thermocouple + AD8495", '-3':"Thermocouple + MAX31855 (only for sensor 0)", '-2':"Thermocouple + MAX6675 (only for sensor 0)", '-1':"Thermocouple + AD595",'998':"Dummy 1", '999':"Dummy 2", '2000':"100k / 4k7" }
  */
-#define TEMP_SENSOR_0 5 //1
+// Hephestos 2 thermistor
+#define TEMP_SENSOR_0 70
 #define TEMP_SENSOR_1 0
 #define TEMP_SENSOR_2 0
 #define TEMP_SENSOR_3 0
 #define TEMP_SENSOR_4 0
 #define TEMP_SENSOR_5 0
-#define TEMP_SENSOR_BED 1
+// Hephestos 2, disabled bed sensor. DO NOT USE A HEATED BED WITH THIS FAKE SENSOR SETTING ON. Value was 1 for prusa mini
+#define TEMP_SENSOR_BED 998
 #define TEMP_SENSOR_BOARD 2000
 #define TEMP_SENSOR_CHAMBER 0
 #define HEATER_CHAMBER_PIN -1 // On/off pin for enclosure heating system
@@ -429,9 +431,24 @@
 // is more than PID_FUNCTIONAL_RANGE then the PID will be shut off and the heater will be set to min/max.
 
     // Prusa MINI
-    #define DEFAULT_Kp 7.00
-    #define DEFAULT_Ki 0.50
-    #define DEFAULT_Kd 45.00
+//    #define DEFAULT_Kp 7.00
+//    #define DEFAULT_Ki 0.50
+//    #define DEFAULT_Kd 45.00
+
+  // Tuned PID values using M303 Hephestos 2
+  #define DEFAULT_Kp 14.82
+  #define DEFAULT_Ki  0.4
+  #define DEFAULT_Kd 68.25
+
+  // Tuned PID values using M303 from OFFICIAL marlin repo (probar?)
+  //#define DEFAULT_Kp 23.75
+  //#define DEFAULT_Ki  2.12
+  //#define DEFAULT_Kd 66.63
+
+  // BQ firmware stock PID values
+  //#define DEFAULT_Kp 10.7
+  //#define DEFAULT_Ki 0.45
+  //#define DEFAULT_Kd 3
 
     #define STEADY_STATE_HOTEND // Enable support for STEADY_STATE_HOTEND (feed-forward thermal management)
     #define STEADY_STATE_HOTEND_LINEAR_COOLING_TERM 0.422
@@ -509,7 +526,8 @@
  * Note: For Bowden Extruders make this large enough to allow load/unload.
  */
 #define PREVENT_LENGTHY_EXTRUDE
-#define EXTRUDE_MAXLENGTH 1000
+// Hephestos 2
+#define EXTRUDE_MAXLENGTH 200
 
 //===========================================================================
 //======================== Thermal Runaway Protection =======================
@@ -529,7 +547,8 @@
  */
 
 #define THERMAL_PROTECTION_HOTENDS // Enable thermal protection for all extruders
-#define THERMAL_PROTECTION_BED // Enable thermal protection for the heated bed
+// Disabled for Hephestos 2
+//#define THERMAL_PROTECTION_BED // Enable thermal protection for the heated bed
 #define THERMAL_PROTECTION_CHAMBER // Enable thermal protection for the heated chamber
 
 //===========================================================================
@@ -673,8 +692,9 @@
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4[, E5]]]]]
  */
 //#define DEFAULT_AXIS_STEPS_PER_UNIT   { 100, 100, 400, 280 } //E0 280 295
+// Hephestos 2, ojo ajustar Z y quizas extrusor (ERAN { 100, 100, 400, 325 } en PRUSA MINI)
 #define DEFAULT_AXIS_STEPS_PER_UNIT \
-    { 100, 100, 400, 325 } //E0 280 295
+    { 80, 80, 800, 210 } // Hephestos 2, para extrusor es 219 en REPO OFICIAL MARLIN
 //#define DEFAULT_AXIS_STEPS_PER_UNIT   { 800, 800, 3200, 1120 } //E0 280 295
 //#define DEFAULT_AXIS_STEPS_PER_UNIT   { 100, 100, 400, 1120 } //E0 280 295
 
@@ -693,7 +713,7 @@
  *                                      X, Y, Z, E0 [, E1[, E2[, E3[, E4[, E5]]]]]
  */
 #define DEFAULT_MAX_ACCELERATION \
-    { 1250, 1250, 400, 4000 }
+    { 1250, 1250, 150, 400 } // { 1250, 1250, 400, 4000 }
 
 /**
  * Default Acceleration (change/s) change = mm/s
@@ -729,7 +749,8 @@
     #define DEFAULT_ZJERK 2.0
 #endif
 
-#define DEFAULT_EJERK 10 // May be used by Linear Advance
+// Hephestos 2
+#define DEFAULT_EJERK 4.5 // May be used by Linear Advance
 
 /**
  * S-Curve Acceleration
@@ -854,11 +875,12 @@
  *      O-- FRONT --+
  *    (0,0)
  */
-#define NOZZLE_TO_PROBE_OFFSET \
-    { -29, -3, 0 }
+// Hephestos 2
+#define NOZZLE_TO_PROBE_OFFSET { 34, 15, 0 }
 
 // Certain types of probes need to stay away from edges
-#define MIN_PROBE_EDGE 5
+// Hephestos 2
+#define MIN_PROBE_EDGE 10
 
 // X and Y axis travel speed (mm/m) between probes
 #define XY_PROBE_SPEED 5000
@@ -982,30 +1004,31 @@
 
 // Direction of endstops when homing; 1=MAX, -1=MIN
 // :[-1,1]
-#define X_HOME_DIR 1
+// Cambiado para Hephestos 2
+#define X_HOME_DIR -1
 #define Y_HOME_DIR -1
 #define Z_HOME_DIR -1
 
 // @section machine
 
-// The size of the print bed
-#define X_BED_SIZE 180
-#define Y_BED_SIZE 180
-#define Z_SIZE 185
+// The size of the print bed Hephestos 2
+#define X_BED_SIZE 210
+#define Y_BED_SIZE 302
+#define Z_SIZE 210
 
 // Travel limits (mm) after homing, corresponding to endstop positions.
-#define X_MIN_POS -2
-#define Y_MIN_POS -3
+#define X_MIN_POS 0 //-2 removed for Hephestos 2
+#define Y_MIN_POS 0 //-3
 #define Z_MIN_POS 0
 #define X_MAX_POS X_BED_SIZE
 #define Y_MAX_POS Y_BED_SIZE
 #ifdef USE_PRUSA_EEPROM_AS_SOURCE_OF_DEFAULT_VALUES
-    #define DEFAULT_Z_MAX_POS 185
+    #define DEFAULT_Z_MAX_POS 210
     #define Z_MIN_LEN_LIMIT 1
     #define Z_MAX_LEN_LIMIT 10000
     #define Z_MAX_POS (get_z_max_pos_mm())
 #else
-    #define Z_MAX_POS 185
+    #define Z_MAX_POS 210
 #endif
 
 /// Distance between start of the axis to the position where ordinary movement is allowed
@@ -1274,7 +1297,8 @@
 
 // Manually set the home position. Leave these undefined for automatic settings.
 // For DELTA this is the top-center of the Cartesian print volume.
-#define MANUAL_X_HOME_POS 180.4
+// QUITADO para Hephestos 2
+//#define MANUAL_X_HOME_POS 210
 //#define MANUAL_Y_HOME_POS 0
 //#define MANUAL_Z_HOME_POS 0
 
@@ -1290,8 +1314,9 @@
 #define Z_SAFE_HOMING
 
 #if ENABLED(Z_SAFE_HOMING)
-    #define Z_SAFE_HOMING_X_POINT (147.4) // X point for Z homing when homing all axes (G28).
-    #define Z_SAFE_HOMING_Y_POINT (21.1) // Y point for Z homing when homing all axes (G28).
+  // Hephestos 2
+  #define Z_SAFE_HOMING_X_POINT ((X_BED_SIZE) / 2)    // X point for Z homing when homing all axes (G28).
+  #define Z_SAFE_HOMING_Y_POINT ((Y_BED_SIZE) / 2)    // Y point for Z homing when homing all axes (G28).
 #endif
 
 // Homing speeds (mm/m)
@@ -1434,6 +1459,7 @@
 #define NOZZLE_PARK_FEATURE
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
+    // Ojo quizas conviene ajustar para Hephestos 2
     #define Z_AXIS_LOAD_POS  40
     #define Z_AXIS_UNLOAD_POS 20
     // homing to this pos makes PTFE tube last longer

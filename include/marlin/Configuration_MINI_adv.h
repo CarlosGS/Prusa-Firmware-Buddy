@@ -1089,8 +1089,8 @@
 // Override the mesh area if the automatic (max) area is too large
 #define MESH_MIN_X MESH_INSET
 #define MESH_MIN_Y MESH_INSET
-#define MESH_MAX_X X_BED_SIZE - (MESH_INSET) - 29
-#define MESH_MAX_Y Y_BED_SIZE - (MESH_INSET) - 3
+#define MESH_MAX_X X_BED_SIZE - (MESH_INSET) //+ 34 // Hephestos 2 Z probe offset
+#define MESH_MAX_Y Y_BED_SIZE - (MESH_INSET) //+ 15
 #endif
 
 /**
@@ -1346,6 +1346,7 @@
  */
 #define ADVANCED_PAUSE_FEATURE
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
+    // Ojo, ajustar para Hephestos 2
     #define FILAMENT_UNLOAD_RAMMING_SEQUENCE \
         { \
             { 1, 100 }, \
@@ -1363,7 +1364,7 @@
 // This short retract is done immediately, before parking the nozzle.
     #define FILAMENT_CHANGE_UNLOAD_FEEDRATE 80 // (mm/s) Unload filament feedrate. This can be pretty fast.
     #define FILAMENT_CHANGE_UNLOAD_ACCEL 1250 // (mm/s^2) Lower acceleration may allow a faster feedrate.
-    #define FILAMENT_CHANGE_UNLOAD_LENGTH 420 // (mm) The length of filament for a complete unload.
+    #define FILAMENT_CHANGE_UNLOAD_LENGTH 100 // (mm) The length of filament for a complete unload.
 //   For Bowden, the full length of the tube and nozzle.
 //   For direct drive, the full length of the nozzle.
 //   Set to 0 for manual unloading.
@@ -1372,7 +1373,7 @@
 // 0 to disable start loading and skip to fast load only
     #define FILAMENT_CHANGE_FAST_LOAD_FEEDRATE 80 // (mm/s) Load filament feedrate. This can be pretty fast.
     #define FILAMENT_CHANGE_FAST_LOAD_ACCEL 625 // (mm/s^2) Lower acceleration may allow a faster feedrate.
-    #define FILAMENT_CHANGE_FAST_LOAD_LENGTH 320 // (mm) Load length of filament, from extruder gear to nozzle.
+    #define FILAMENT_CHANGE_FAST_LOAD_LENGTH 0 // (mm) Load length of filament, from extruder gear to nozzle.
 //   For Bowden, the full length of the tube and nozzle.
 //   For direct drive, the full length of the nozzle.
 //#define ADVANCED_PAUSE_CONTINUOUS_PURGE       // Purge continuously up to the purge length until interrupted.
@@ -1512,11 +1513,11 @@
  */
 #if HAS_TRINAMIC
 
-    constexpr float HOLD_MULTIPLIER[4] = {1, 1, 1, 1};  // Scales down the holding current from run current
+    constexpr float HOLD_MULTIPLIER[4] = {1,1,1,1};  // Scales down the holding current from run current
     #define INTERPOLATE true // Interpolate X/Y/Z_MICROSTEPS to 256
 
     #if AXIS_IS_TMC(X)
-        #define X_CURRENT 350 // (mA) RMS current. Multiply by 1.414 for peak current.
+        #define X_CURRENT 400 // (mA) RMS current. Multiply by 1.414 for peak current.
         #define X_MICROSTEPS 16 // 0..256
         #define X_RSENSE 0.22
     #endif
@@ -1528,7 +1529,7 @@
     #endif
 
     #if AXIS_IS_TMC(Y)
-        #define Y_CURRENT 350
+        #define Y_CURRENT 400
         #define Y_MICROSTEPS 16
         #define Y_RSENSE 0.22
     #endif
@@ -1540,7 +1541,7 @@
     #endif
 
     #if AXIS_IS_TMC(Z)
-        #define Z_CURRENT 350 //530//650
+        #define Z_CURRENT 800 // Hephestos 2 dual Z motor
         #define Z_MICROSTEPS 8 //16
         #define Z_RSENSE 0.22
     #endif
@@ -1637,7 +1638,7 @@
    */
     #define STEALTHCHOP_XY
     #define STEALTHCHOP_Z
-//  #define STEALTHCHOP_E
+    #define STEALTHCHOP_E
 
     /**
    * Optimize spreadCycle chopper parameters by using predefined parameter sets
@@ -1653,7 +1654,7 @@
    * Define you own with
    * { <off_time[1..15]>, <hysteresis_end[-3..12]>, hysteresis_start[1..8] }
    */
-    #define CHOPPER_TIMING CHOPPER_PRUSAMK3_24V
+    #define CHOPPER_TIMING CHOPPER_DEFAULT_12V //CHOPPER_PRUSAMK3_24V // Changed for Hephestos, but not really used
 
 /**
    * Monitor Trinamic drivers for error conditions,
@@ -1712,7 +1713,7 @@
    *
    * Stall threshold defines maximal period between steps to trigger a stallguard
    */
-//#define SENSORLESS_HOMING // TMC2130 only
+//#define HIGHEST // TMC2130 only
 
 /**
    * Use StallGuard2 to probe the bed with the nozzle.
@@ -1724,7 +1725,7 @@
 
     #if EITHER(SENSORLESS_HOMING, SENSORLESS_PROBING)
         #if X_DRIVER_TYPE == TMC2209
-            #define X_STALL_SENSITIVITY 8
+            #define X_STALL_SENSITIVITY 8 // Ojo en Prusa Mini FW esto se hace en trinamic.cpp "SGTHRS"
         #endif
 
         #if Y_DRIVER_TYPE == TMC2209

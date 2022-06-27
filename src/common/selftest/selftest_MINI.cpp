@@ -183,7 +183,7 @@ void CSelftest::phaseStart() {
     m_HomeState = sthsNone;
     if (m_Mask & stmHeaters) {
         thermalManager.setTargetHotend(40, 0);
-        thermalManager.setTargetBed(40);
+        //thermalManager.setTargetBed(40);
     }
     log_open();
     SelftestResultEEprom_t eeres; // read previous result
@@ -337,31 +337,31 @@ bool CSelftest::phaseAxis(const selftest_axis_config_t &config_axis, CSelftestPa
 bool CSelftest::phaseHeaters(const selftest_heater_config_t &config_nozzle, const selftest_heater_config_t &config_bedconst, CFanCtl &printFan, CFanCtl &heatBreakfan) {
     m_pFSM = m_pFSM ? m_pFSM : new FSM_Holder(ClientFSM::SelftestHeat, 0);
     m_pHeater_Nozzle = m_pHeater_Nozzle ? m_pHeater_Nozzle : new CSelftestPart_HeaterHotend(Config_HeaterNozzle, Temperature::temp_hotend[0].pid, printFan, heatBreakfan);
-    m_pHeater_Bed = m_pHeater_Bed ? m_pHeater_Bed : new CSelftestPart_Heater(Config_HeaterBed, Temperature::temp_bed.pid);
+    //m_pHeater_Bed = m_pHeater_Bed ? m_pHeater_Bed : new CSelftestPart_Heater(Config_HeaterBed, Temperature::temp_bed.pid);
     m_pHeater_Nozzle->Loop();
-    m_pHeater_Bed->Loop();
-    if (m_pHeater_Nozzle->IsInProgress() || m_pHeater_Bed->IsInProgress()) {
-        SelftestHeaters_t result(m_pHeater_Nozzle->GetProgress(), m_pHeater_Bed->GetProgress(),
+    //m_pHeater_Bed->Loop();
+    if (m_pHeater_Nozzle->IsInProgress()) {
+        SelftestHeaters_t result(m_pHeater_Nozzle->GetProgress(), m_pHeater_Nozzle->GetProgress(),
             SelftestSubtestState_t(m_pHeater_Nozzle->getFSMState_prepare()), SelftestSubtestState_t(m_pHeater_Nozzle->getFSMState_heat()),
-            SelftestSubtestState_t(m_pHeater_Bed->getFSMState_prepare()), SelftestSubtestState_t(m_pHeater_Bed->getFSMState_heat()));
+            SelftestSubtestState_t(m_pHeater_Nozzle->getFSMState_prepare()), SelftestSubtestState_t(m_pHeater_Nozzle->getFSMState_heat()));
         fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::measure, result.Serialize());
 
         return true;
     }
     SelftestHeaters_t result(100, 100,
         SelftestSubtestState_t(m_pHeater_Nozzle->getFSMState_prepare()), SelftestSubtestState_t(m_pHeater_Nozzle->getFSMState_heat()),
-        SelftestSubtestState_t(m_pHeater_Bed->getFSMState_prepare()), SelftestSubtestState_t(m_pHeater_Bed->getFSMState_heat()));
+        SelftestSubtestState_t(m_pHeater_Nozzle->getFSMState_prepare()), SelftestSubtestState_t(m_pHeater_Nozzle->getFSMState_heat()));
     fsm_change(ClientFSM::SelftestHeat, PhasesSelftestHeat::measure, result.Serialize());
 
     SelftestResultEEprom_t eeres;
     eeres.ui32 = eeprom_get_ui32(EEVAR_SELFTEST_RESULT);
     eeres.nozzle = m_pHeater_Nozzle->GetResult();
-    eeres.bed = m_pHeater_Bed->GetResult();
+    eeres.bed = m_pHeater_Nozzle->GetResult(); //m_pHeater_Bed->GetResult();
     eeprom_set_ui32(EEVAR_SELFTEST_RESULT, eeres.ui32);
     delete m_pHeater_Nozzle;
     m_pHeater_Nozzle = nullptr;
-    delete m_pHeater_Bed;
-    m_pHeater_Bed = nullptr;
+    //delete m_pHeater_Bed;
+    //m_pHeater_Bed = nullptr;
     return false;
 }
 
