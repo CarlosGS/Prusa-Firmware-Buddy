@@ -8,11 +8,6 @@
 
 namespace con {
 
-// TODO: Bring in...
-enum class ContentType {
-    ApplicationJson
-};
-
 enum class Method {
     Post
 };
@@ -26,7 +21,7 @@ class Request {
 public:
     virtual ~Request() = default;
     virtual const char *url() const = 0;
-    virtual ContentType content_type() const = 0;
+    virtual http::ContentType content_type() const = 0;
     virtual Method method() const = 0;
     virtual const HeaderOut *extra_headers() const;
     virtual std::variant<size_t, Error> write_body_chunk(char *data, size_t size);
@@ -44,6 +39,8 @@ private:
 public:
     Response(Connection *conn, uint16_t status);
     http::Status status;
+    http::ContentType content_type = http::ContentType::ApplicationOctetStream;
+    std::optional<uint32_t> command_id;
     size_t content_length() const {
         return content_length_rest;
     }
