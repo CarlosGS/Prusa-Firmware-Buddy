@@ -112,7 +112,7 @@ static std::atomic<bool> seen_intron = false;
 
 // UART
 static const uint32_t NIC_UART_BAUDRATE = 4600000;
-static const uint32_t FLASH_UART_BAUDRATE = 115200;
+static const uint32_t FLASH_UART_BAUDRATE = 74880;
 static const uint32_t CHARACTER_TIMEOUT_MS = 10;
 static std::atomic<bool> esp_detected;
 // Have we seen the ESP alive at least once?
