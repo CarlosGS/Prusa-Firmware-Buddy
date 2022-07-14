@@ -158,11 +158,12 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
         settings.SetRetractLength(0.f);
 
         // catch filament in gear and then ask for temp
-        if (!Pause::Instance().LoadToGear(settings)) {
-            // do not ask for filament type after stop was pressed
+        if (!Pause::Instance().LoadToGear(settings) || FSensors_instance().HasNotFilament()) {
+            // do not ask for filament type after stop was pressed or filament was removed from FS
             Pause::Instance().UnloadFromGear();
             M70X_process_user_response(PreheatStatus::Result::DoneNoFilament);
             FSensors_instance().ClrAutoloadSent();
+            return;
         }
 
         PreheatData data(PreheatMode::Autoload, RetAndCool_t::Return);
@@ -179,7 +180,16 @@ void filament_gcodes::M1701_no_parser(const std::optional<float> &fast_load_leng
         filament_t filament = preheat_ret.second;
         Filaments::SetToBeLoaded(filament);
 
+        if (z_min_pos > 0 && z_min_pos > current_position.z + 0.1F) {
+            xyz_pos_t park_position = { NAN, NAN, z_min_pos };
+            // Returning to previous position is unwanted outside of printing (M1701 should be used only outside of printing)
+            settings.SetParkPoint(park_position);
+            settings.SetParkZFeedrate(HOMING_FEEDRATE_INVERTED_Z);
+        }
+
         load_unload(LoadUnloadMode::Load, &Pause::FilamentAutoload, settings);
+
+        settings.SetParkZFeedrate(settings.GetDefaultParkZFeedrate());
 
         M70X_process_user_response(PreheatStatus::Result::DoneHasFilament);
     }

@@ -295,16 +295,19 @@ void Pause::loop_load(Response response) {
         if (response == Response::Stop)
             settings.do_stop = true;
         break;
-    case LoadPhases_t::load_in_gear: //slow load
+    case LoadPhases_t::load_in_gear: // slow load
         setPhase(PhasesLoadUnload::Inserting_stoppable, 10);
         do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
+        // if filament is not present we want to break and not set loaded filament
         Filaments::Set(Filaments::GetToBeLoaded());
         set(LoadPhases_t::wait_temp);
+        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::wait_temp:
         if (ensureSafeTemperatureNotifyProgress(30, 50)) {
             set(LoadPhases_t::long_load);
         }
+        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::error_temp:
         set(LoadPhases_t::_finish);
@@ -314,6 +317,7 @@ void Pause::loop_load(Response response) {
         setPhase(PhasesLoadUnload::Loading_stoppable, 50);
         do_e_move_notify_progress_hotextrude(settings.fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 50, 70);
         set(LoadPhases_t::purge);
+        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::purge:
         // Extrude filament to get into hotend
@@ -321,6 +325,7 @@ void Pause::loop_load(Response response) {
         do_e_move_notify_progress_hotextrude(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
         setPhase(PhasesLoadUnload::IsColor, 99);
         set(LoadPhases_t::ask_is_color_correct);
+        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::ask_is_color_correct:
         if (response == Response::Purge_more) {
@@ -332,6 +337,7 @@ void Pause::loop_load(Response response) {
         if (response == Response::Continue) {
             set(LoadPhases_t::_finish);
         }
+        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::eject:
         setPhase(PhasesLoadUnload::Ramming_stoppable, 98);
@@ -494,9 +500,11 @@ void Pause::loop_autoload(Response response) {
     // transitions
     switch (getLoadPhase()) {
     case LoadPhases_t::_init:
+        // if filament is not present we want to break and not set loaded filament
         // we have already loaded the filament in gear, now just wait for temperature to rise
         Filaments::Set(Filaments::GetToBeLoaded());
         set(LoadPhases_t::wait_temp);
+        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::check_filament_sensor_and_user_push__ask:
         if (FSensors_instance().HasNotFilament()) {
@@ -513,13 +521,16 @@ void Pause::loop_autoload(Response response) {
     case LoadPhases_t::load_in_gear: //slow load
         setPhase(PhasesLoadUnload::Inserting_stoppable, 10);
         do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
+        // if filament is not present we want to break and not set loaded filament
         Filaments::Set(Filaments::GetToBeLoaded());
         set(LoadPhases_t::wait_temp);
+        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::wait_temp:
         if (ensureSafeTemperatureNotifyProgress(30, 50)) {
             set(LoadPhases_t::long_load);
         }
+        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::error_temp:
         set(LoadPhases_t::_finish);
@@ -529,6 +540,7 @@ void Pause::loop_autoload(Response response) {
         setPhase(PhasesLoadUnload::Loading_stoppable, 50);
         do_e_move_notify_progress_hotextrude(settings.fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 50, 70);
         set(LoadPhases_t::purge);
+        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::purge:
         // Extrude filament to get into hotend
@@ -536,6 +548,7 @@ void Pause::loop_autoload(Response response) {
         do_e_move_notify_progress_hotextrude(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
         setPhase(PhasesLoadUnload::IsColor, 99);
         set(LoadPhases_t::ask_is_color_correct);
+        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::ask_is_color_correct:
         if (response == Response::Purge_more) {
@@ -547,6 +560,7 @@ void Pause::loop_autoload(Response response) {
         if (response == Response::Continue) {
             set(LoadPhases_t::_finish);
         }
+        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::eject:
         setPhase(PhasesLoadUnload::Ramming_stoppable, 98);
@@ -603,13 +617,16 @@ void Pause::loop_load_change(Response response) {
     case LoadPhases_t::load_in_gear: //slow load
         setPhase(PhasesLoadUnload::Inserting_unstoppable, 10);
         do_e_move_notify_progress_coldextrude(settings.slow_load_length, FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE, 10, 30); // TODO method without param using actual phase
+        // if filament is not present we want to break and not set loaded filament
         Filaments::Set(Filaments::GetToBeLoaded());
         set(LoadPhases_t::wait_temp);
+        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::wait_temp:
         if (ensureSafeTemperatureNotifyProgress(30, 50)) {
             set(LoadPhases_t::long_load);
         }
+        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::error_temp:
         set(LoadPhases_t::_finish);
@@ -619,6 +636,7 @@ void Pause::loop_load_change(Response response) {
         setPhase(PhasesLoadUnload::Loading_unstoppable, 50);
         do_e_move_notify_progress_hotextrude(settings.fast_load_length, FILAMENT_CHANGE_FAST_LOAD_FEEDRATE, 50, 70);
         set(LoadPhases_t::purge);
+        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::purge:
         // Extrude filament to get into hotend
@@ -626,6 +644,7 @@ void Pause::loop_load_change(Response response) {
         do_e_move_notify_progress_hotextrude(purge_ln, ADVANCED_PAUSE_PURGE_FEEDRATE, 70, 99);
         setPhase(PhasesLoadUnload::IsColor, 99);
         set(LoadPhases_t::ask_is_color_correct);
+        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::ask_is_color_correct:
         if (response == Response::Purge_more) {
@@ -637,6 +656,7 @@ void Pause::loop_load_change(Response response) {
         if (response == Response::Continue) {
             set(LoadPhases_t::_finish);
         }
+        handle_filament_removal(LoadPhases_t::check_filament_sensor_and_user_push__ask);
         break;
     case LoadPhases_t::eject:
         setPhase(PhasesLoadUnload::Ramming_unstoppable, 98);
@@ -994,6 +1014,7 @@ void Pause::park_nozzle_and_notify() {
 
     const float target_Z = settings.park_pos.z;
     const float Z_len = current_position.z - target_Z; // sign does not matter
+    const float Z_feedrate = settings.park_z_feedrate; // customizable Z feedrate
 
     float XY_len = 0;
     float begin_pos = 0;
@@ -1016,7 +1037,7 @@ void Pause::park_nozzle_and_notify() {
     // move by z_lift, scope for Notifier_POS_Z
     if (isfinite(target_Z)) {
         Notifier_POS_Z N(ClientFSM::Load_unload, getPhaseIndex(), current_position.z, target_Z, 0, parkMoveZPercent(Z_len, XY_len));
-        plan_park_move_to(current_position.x, current_position.y, target_Z, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
+        plan_park_move_to(current_position.x, current_position.y, target_Z, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
         if (wait_or_stop())
             return;
     }
@@ -1038,12 +1059,12 @@ void Pause::park_nozzle_and_notify() {
 
         if (x_greater_than_y) {
             Notifier_POS_X N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100); //from Z% to 100%
-            plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
+            plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
             if (wait_or_stop())
                 return;
         } else {
             Notifier_POS_Y N(ClientFSM::Load_unload, getPhaseIndex(), begin_pos, end_pos, parkMoveZPercent(Z_len, XY_len), 100); //from Z% to 100%
-            plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, NOZZLE_PARK_Z_FEEDRATE);
+            plan_park_move_to_xyz(settings.park_pos, NOZZLE_PARK_XY_FEEDRATE, Z_feedrate);
             if (wait_or_stop())
                 return;
         }
@@ -1240,6 +1261,14 @@ bool Pause::check_user_stop() {
     current_position = real_current_position;
     planner.set_position_mm(current_position);
     return true;
+}
+void Pause::handle_filament_removal(LoadPhases_t phase_to_set) {
+    if (FSensors_instance().HasNotFilament()) {
+        set(phase_to_set);
+        Filaments::Set(filament_t::NONE);
+        return;
+    }
+    return;
 }
 
 /*****************************************************************************/
